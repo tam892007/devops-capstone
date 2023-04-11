@@ -36,7 +36,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["86:67:8d:9c:da:b0:e6:ad:ef:bc:ec:5f:c8:49:3f:b1"]
+          fingerprints: ["53:7a:00:5f:4a:f7:0d:0c:b0:4e:93:b0:53:fa:d9:83"]
       - attach_workspace:
           at: ~/
       - aws-cli/setup

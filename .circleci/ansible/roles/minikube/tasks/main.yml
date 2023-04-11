@@ -23,6 +23,14 @@
     name: conntrack
     state: present
 
+- name: Installing crictl
+  shell: |
+    VERSION="v1.26.0" # check latest version in /releases page
+    wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
+    sudo tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin
+    rm -f crictl-$VERSION-linux-amd64.tar.gz
+
+
 - name: Downloading minikube
   get_url:
     url: https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm

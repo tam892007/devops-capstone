@@ -1,5 +1,37 @@
 ---
-- name: "upgrade packages."
-  become: true
-  apt:
-    upgrade: "yes"
+- name: conf repo for kubectl
+  yum_repository:
+    name: Kubernetes
+    description: Kubectl
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: yes
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    repo_gpgcheck: yes
+
+- name: Installing kubectl
+  yum:
+    name: kubectl
+    state: present
+
+- name: Installing docker
+  yum:
+    name: docker
+    state: present
+
+- name: Installing conntrack
+  yum:
+    name: conntrack
+    state: present
+
+- name: Downloading minikube
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-latest.x86_64.rpm
+    dest: /root/minikube-latest.x86_64.rpm
+
+- name: Installing minikube
+  yum:
+    name: /root/minikube-latest.x86_64.rpm
+    state: present
+
+- name: Starting minikube driver using none
+  command: minikube start --driver=none

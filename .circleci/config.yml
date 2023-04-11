@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  aws-cli: circleci/aws-cli@3.1
+
 jobs:
   deploy-infrastructure:
       docker:
@@ -27,7 +30,34 @@ jobs:
             paths:
               - project/.circleci/ansible/inventory.txt
 
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["86:67:8d:9c:da:b0:e6:ad:ef:bc:ec:5f:c8:49:3f:b1"]
+      - attach_workspace:
+          at: ~/
+      - aws-cli/setup
+      - run: cat ~/project/.circleci/ansible/inventory.txt
+      - run:
+          name: Install dependencies
+          command: |
+            # install the dependencies needed for your playbook
+            apk add --update ansible
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
 workflows:
   default:
     jobs:
       - deploy-infrastructure
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]

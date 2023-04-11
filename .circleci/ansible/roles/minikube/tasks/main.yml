@@ -38,7 +38,8 @@
 
 - name: Setup necessary permission
   become: true
-  command: usermod -aG docker $USER && newgrp docker
+  shell: |
+    usermod -aG docker $USER && newgrp docker
 
 - name: Starting minikube driver using docker
   command: minikube start --driver=docker

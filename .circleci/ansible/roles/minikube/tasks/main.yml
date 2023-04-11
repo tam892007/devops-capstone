@@ -36,10 +36,12 @@
 - name: Start docker daemon
   command: systemctl start docker
 
-- name: Setup necessary permission
-  become: true
-  shell: |
-    usermod -aG docker $USER && newgrp docker
+- name: Setup necessary permission for "{{ ansible_user }}"
+  become: yes
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
 
 - name: Starting minikube driver using docker
   command: minikube start --driver=docker

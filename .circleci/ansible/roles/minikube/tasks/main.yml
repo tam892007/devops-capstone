@@ -40,6 +40,7 @@
     state: present
 
 - name: Start docker daemon
+  become: yes
   command: systemctl start docker
 
 - name: Setup necessary permission for "{{ ansible_user }}"

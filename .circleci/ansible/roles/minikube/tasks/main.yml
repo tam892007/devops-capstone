@@ -1,5 +1,6 @@
 ---
 - name: conf repo for kubectl
+  become: true
   yum_repository:
     name: Kubernetes
     description: Kubectl

@@ -10,16 +10,19 @@
     repo_gpgcheck: yes
 
 - name: Installing kubectl
+  become: true
   yum:
     name: kubectl
     state: present
 
 - name: Installing docker
+  become: true
   yum:
     name: docker
     state: present
 
 - name: Installing conntrack
+  become: true
   yum:
     name: conntrack
     state: present
@@ -30,6 +33,7 @@
     dest: /root/minikube-latest.x86_64.rpm
 
 - name: Installing minikube
+  become: true
   yum:
     name: /root/minikube-latest.x86_64.rpm
     state: present

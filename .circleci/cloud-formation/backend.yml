@@ -27,7 +27,7 @@ Resources:
       InstanceType: t2.medium
       SecurityGroups:
         - Ref: InstanceSecurityGroup
-      KeyName: udacity 
+      KeyName: capstone 
       ImageId: ami-06e46074ae430fba6
       Tags:
         - Key: Name

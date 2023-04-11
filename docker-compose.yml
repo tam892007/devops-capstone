@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=myPassword
+    ports:
+      - 5432:5432
+    volumes: 
+      - db:/var/lib/postgresql/data
+
+  db-migrator:
+    image: udacity-devops-capstone-dbmigrator:1.0.0 
+    pull_policy: if_not_present
+    environment:
+      - ConnectionStrings__Default=Host=db;Port=5432;Database=Capstone;User ID=postgres;Password=myPassword;
+    depends_on:
+      - db
+
+  webapp:
+    image: udacity-devops-capstone-blazor:1.0.0
+    pull_policy: if_not_present
+    ports:
+      - 8080:80
+      - 8443:443
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - App__SelfUrl=https://localhost:8443
+      - App__RedirectAllowedUrls=https://localhost:8443
+      - ConnectionStrings__Default=Host=db;Port=5432;Database=Capstone;User ID=postgres;Password=myPassword;
+      - AuthServer__Authority=https://localhost:8443
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      db-migrator:
+        condition: service_completed_successfully
+    
+volumes:
+  db:
+    external: false

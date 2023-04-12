@@ -9,7 +9,7 @@ commands:
       - run:
           name: Extract the package reference lines
           command: |
-            PATHS_TO_FIND="./**/*.csproj"
+            PATHS_TO_FIND="./src/**/*.csproj"
             for path in $PATHS_TO_FIND 
             do
                 while read -r line; do
@@ -24,7 +24,7 @@ commands:
       - run:
           name: Copy obj folders
           command: |
-            PATHS_TO_FIND="./**/*.csproj"
+            PATHS_TO_FIND="./src/**/*.csproj"
             for path in $search; 
             do
                 mkdir -p ./objs/$path/..
@@ -137,7 +137,8 @@ workflows:
   default:
     jobs:
       - build
-      - test
+      - test:
+          requires: [build]
       # - deploy-infrastructure
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]

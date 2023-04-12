@@ -25,7 +25,7 @@ commands:
           name: Copy obj folders
           command: |
             PATHS_TO_FIND="./src/**/*.csproj"
-            for path in $search; 
+            for path in $PATHS_TO_FIND
             do
                 mkdir -p ./objs/$path/..
                 cp -r $path ./objs/$path/..

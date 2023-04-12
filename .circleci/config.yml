@@ -85,7 +85,7 @@ jobs:
       - run: 
           name: Test
           command: |
-            dotnet test --no-build
+            dotnet test --no-restore
   
   build-docker:
     docker:
@@ -103,7 +103,7 @@ jobs:
       - run: 
           name: Build and Push Docker images
           command: |
-            dotnet publish ./src/Udacity.DevOps.Capstone.Blazor --no-build --os linux --arch x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=registry.hub.docker.com -c Release  
+            dotnet publish ./src/Udacity.DevOps.Capstone.Blazor --no-restore --os linux --arch x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=registry.hub.docker.com -c Release  
 
   deploy-infrastructure:
     docker:

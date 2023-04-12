@@ -3,32 +3,112 @@ version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1
 
+commands:
+  list-packages:
+    steps:
+      - run:
+          name: Extract the package reference lines
+          command: |
+            PATHS_TO_FIND="./**/*.csproj"
+            for path in $PATHS_TO_FIND 
+            do
+                while read -r line; do
+                    if [[ $line =~ "<PackageReference" ]]; then
+                        echo "${line// /}" >> packages.txt
+                    fi  
+                done < "$path"
+            done
+
+  copy-obj:
+    steps:
+      - run:
+          name: Copy obj folders
+          command: |
+            PATHS_TO_FIND="./**/*.csproj"
+            for path in $search; 
+            do
+                mkdir -p ./objs/$path/..
+                cp -r $path ./objs/$path/..
+            done
+            tar -czf objs.tar.gz -C objs .
+
+  restore-packages:
+    steps:
+      - run:
+          name: Restore package from cache if no changes. Otherwise, from nuget.
+          command: |
+            if [ ! -f ./objs.tar.gz ]; then
+                #restore
+                dotnet restore
+            else
+                #unzip objs
+                tar -xzf objs.tar.gz
+                echo "Restore skipped."
+            fi
+
 jobs:
+  build:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
+    steps:
+      - checkout
+      - list-packages
+      - restore-packages
+      - run: 
+          name: Lint
+          command: |
+            dotnet format -v diagnostic --verify-no-changes --no-restore
+      - run: 
+          name: Build
+          command: |
+            dotnet build --no-restore -c Release
+      - copy-obj
+      - save_cache:
+          key: dotnet-packages-{{ checksum "packages.txt" }}
+          paths:
+            - ~/.nuget/packages
+            - ./objs.tar.gz
+
+  test: 
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0    
+    steps:
+      - checkout
+      - list-packages
+      - restore_cache:
+          keys:
+            - dotnet-packages-{{ checksum "packages.txt" }}
+      - restore-packages
+      - run: 
+          name: Lint
+          command: |
+            dotnet test
+
   deploy-infrastructure:
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run: yum install -y tar gzip
-        - run:
-            name: Ensure back-end infrastructure exists
-            command: |
-              aws cloudformation deploy \
-                --template-file .circleci/cloud-formation/backend.yml \
-                --stack-name "capstone-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-                --tags project=capstone
-        - run:
-            name: Add back-end ip to ansible inventory
-            command: |
-              aws ec2 describe-instances \
-                --query 'Reservations[*].Instances[*].PublicIpAddress' \
-                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --output text >> ~/project/.circleci/ansible/inventory.txt
-        - persist_to_workspace:
-            root: ~/
-            paths:
-              - project/.circleci/ansible/inventory.txt
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/cloud-formation/backend.yml \
+              --stack-name "capstone-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+              --tags project=capstone
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text >> ~/project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
 
   configure-infrastructure:
     docker:
@@ -56,6 +136,8 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy-infrastructure
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      - build
+      - test
+      # - deploy-infrastructure
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]

@@ -161,6 +161,8 @@ workflows:
       - build
       - test:
           requires: [build]
+      - build-docker:
+          requires: [test]
       # - deploy-infrastructure
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]

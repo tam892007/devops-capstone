@@ -19,6 +19,7 @@ commands:
                     fi  
                 done < "$path"
             done
+            rm *.csproj
             cat packages.txt
 
   copy-obj:

@@ -45,7 +45,7 @@ commands:
                 dotnet restore
             else
                 #unzip objs
-                tar -xzf objs.tar.gz
+                tar -xzf objs.tar.gz --strip-components=1
                 ls
                 ls ./src/Udacity.DevOps.Capstone.Blazor/obj
                 echo "Restore skipped."
@@ -86,8 +86,7 @@ jobs:
       - restore-packages
       - run: 
           name: Test
-          command: |
-            dotnet test --no-build -v m
+          command: dotnet test --no-build -v m < /dev/null
   
   build-docker:
     docker:

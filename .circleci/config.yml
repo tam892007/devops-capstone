@@ -89,7 +89,10 @@ jobs:
   
   build-docker:
     docker:
-      - image: mcr.microsoft.com/dotnet/sdk:7.0  
+      - image: mcr.microsoft.com/dotnet/sdk:7.0 
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
       - checkout
       - list-packages
@@ -97,10 +100,6 @@ jobs:
           keys:
             - dotnet-packages-{{ checksum "packages.txt" }}
       - restore-packages
-      - run:
-          name: Docker Login
-          command: |
-            docker login registry.hub.docker.com -u $DOCKER_USERNAME  -p DOCKER_PASSWORD 
       - run: 
           name: Build and Push Docker images
           command: |

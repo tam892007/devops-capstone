@@ -9,26 +9,28 @@ commands:
       - run:
           name: Extract the package reference lines
           command: |
-            PATHS_TO_FIND="./src/**/*.csproj"
-            for path in $PATHS_TO_FIND 
+            cp ./src/*/*.csproj .
+            for path in $(ls *.csproj)
             do
+                echo $path
                 while read -r line; do
                     if [[ $line =~ "<PackageReference" ]]; then
                         echo "${line// /}" >> packages.txt
                     fi  
                 done < "$path"
             done
+            cat packages.txt
 
   copy-obj:
     steps:
       - run:
           name: Copy obj folders
           command: |
-            PATHS_TO_FIND="./src/**/*.csproj"
-            for path in $PATHS_TO_FIND
+            for path in $(find . -regex '.*/obj')
             do
-                mkdir -p ./objs/$path/..
-                cp -r $path ./objs/$path/..
+                echo $path
+                mkdir -p ./objs/$path
+                cp -r $path ./objs/$path
             done
             tar -czf objs.tar.gz -C objs .
 

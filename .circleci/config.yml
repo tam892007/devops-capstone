@@ -31,8 +31,9 @@ commands:
             do
                 echo $path
                 mkdir -p objs/$path
-                cp -r $path/* objs/$path
+                cp -r $path/. objs/$path/
             done
+            ls objs -R
             tar -czf objs.tar.gz -C objs .
 
   restore-packages:
@@ -48,7 +49,6 @@ commands:
                 tar -tf objs.tar.gz
                 tar -xzf objs.tar.gz
                 echo "untar completed ======"
-                ls
                 ls ./src/Udacity.DevOps.Capstone.Blazor/obj
                 echo "Restore skipped."
             fi

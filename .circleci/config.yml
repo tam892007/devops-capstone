@@ -71,7 +71,7 @@ jobs:
             dotnet build --no-restore -c Release
       - copy-obj
       - save_cache:
-          key: dotnet-packages-{{ checksum "packages.txt" }}
+          key: dotnet-package-v1-{{ checksum "packages.txt" }}
           paths:
             - ~/.nuget/packages
             - ./objs.tar.gz
@@ -84,7 +84,7 @@ jobs:
       - list-packages
       - restore_cache:
           keys:
-            - dotnet-packages-{{ checksum "packages.txt" }}
+            - dotnet-packages-v1-{{ checksum "packages.txt" }}
       - restore-packages
       - run: 
           name: Test
@@ -102,7 +102,7 @@ jobs:
       - list-packages
       - restore_cache:
           keys:
-            - dotnet-packages-{{ checksum "packages.txt" }}
+            - dotnet-packages-v1-{{ checksum "packages.txt" }}
       - restore-packages
       - run: 
           name: Build and Push Docker images

@@ -71,7 +71,7 @@ jobs:
             dotnet build --no-restore -c Release
       - copy-obj
       - save_cache:
-          key: dotnet-package-v1-{{ checksum "packages.txt" }}
+          key: dotnet-packages-v1-{{ checksum "packages.txt" }}
           paths:
             - ~/.nuget/packages
             - ./objs.tar.gz
@@ -89,7 +89,7 @@ jobs:
       - run: 
           name: Test
           command: |
-            dotnet test --no-build -v m
+            dotnet test --no-build
   
   build-docker:
     docker:

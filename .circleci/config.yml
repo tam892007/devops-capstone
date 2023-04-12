@@ -83,9 +83,28 @@ jobs:
             - dotnet-packages-{{ checksum "packages.txt" }}
       - restore-packages
       - run: 
-          name: Lint
+          name: Test
           command: |
-            dotnet test
+            dotnet test --no-build
+  
+  build-docker:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0  
+    steps:
+      - checkout
+      - list-packages
+      - restore_cache:
+          keys:
+            - dotnet-packages-{{ checksum "packages.txt" }}
+      - restore-packages
+      - run:
+          name: Docker Login
+          command: |
+            docker login registry.hub.docker.com -u $DOCKER_USERNAME  -p DOCKER_PASSWORD 
+      - run: 
+          name: Build and Push Docker images
+          command: |
+            dotnet publish .\src\Udacity.DevOps.Capstone.Blazor --no-build --os linux --arch x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=registry.hub.docker.com -c Release  
 
   deploy-infrastructure:
     docker:

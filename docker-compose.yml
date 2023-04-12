@@ -12,7 +12,10 @@ services:
       - db:/var/lib/postgresql/data
 
   db-migrator:
-    image: udacity-devops-capstone-dbmigrator:1.0.0 
+    image: udacity-devops-capstone-dbmigrator
+    build:
+      context: .
+      dockerfile: src/Udacity.DevOps.Capstone.DbMigrator/Dockerfile
     pull_policy: if_not_present
     environment:
       - ConnectionStrings__Default=Host=db;Port=5432;Database=Capstone;User ID=postgres;Password=myPassword;
@@ -20,7 +23,10 @@ services:
       - db
 
   webapp:
-    image: udacity-devops-capstone-blazor:1.0.0
+    image: udacity-devops-capstone-blazor
+    build:
+      context: .
+      dockerfile: src/Udacity.DevOps.Capstone.Blazor/Dockerfile
     pull_policy: if_not_present
     ports:
       - 8080:80

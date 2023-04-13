@@ -33,15 +33,11 @@ services:
       - 8443:443
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - App__SelfUrl=https://localhost:8443
-      - App__RedirectAllowedUrls=https://localhost:8443
+      - ASPNETCORE_URLS=http://+:80
+      - App__SelfUrl=http://localhost:8080
+      - App__RedirectAllowedUrls=http://localhost:8080
       - ConnectionStrings__Default=Host=db;Port=5432;Database=Capstone;User ID=postgres;Password=myPassword;
-      - AuthServer__Authority=https://localhost:8443
-    volumes:
-      - ~/.aspnet/https:/https:ro
+      - AuthServer__Authority=http://localhost:8080
     depends_on:
       db-migrator:
         condition: service_completed_successfully

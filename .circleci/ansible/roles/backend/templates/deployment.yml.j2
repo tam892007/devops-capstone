@@ -1,23 +1,33 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: capstone
+  name: udacity-devops-capstone-deployment
   labels:
-    environment: development
+    app: udacity-devops-capstone
 spec:
-  containers:
-  - name: udacity-devops-capstone
-    image: tam892007/udacity-devops-capstone:latest
-    env:
-    - name: ASPNETCORE_ENVIRONMENT
-      value: {{ aspnet_env }}
-    - name: ASPNETCORE_URLS
-      value: {{ aspnet_urls }}
-    - name: App__SelfUrl
-      value: {{ url }}
-    - name: App__RedirectAllowedUrls
-      value: {{ url }}
-    - name: AuthServer__Authority
-      value: {{ url }}
-    - name: ConnectionStrings__Default
-      value: {{ connection_string }}
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: udacity-devops-capstone
+    containers:
+    - name: udacity-devops-capstone
+      image: tam892007/udacity-devops-capstone:latest
+      ports:
+      - containerPort: 80
+      env:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: {{ aspnet_env }}
+      - name: ASPNETCORE_URLS
+        value: {{ aspnet_urls }}
+      - name: App__SelfUrl
+        value: {{ url }}
+      - name: App__RedirectAllowedUrls
+        value: {{ url }}
+      - name: AuthServer__Authority
+        value: {{ url }}
+      - name: ConnectionStrings__Default
+        value: {{ connection_string }}

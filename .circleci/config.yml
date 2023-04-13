@@ -241,7 +241,9 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy-infrastructure
+      - build-docker
+      - deploy-infrastructure:
+          requires: [build-docker]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - deploy-web:
@@ -254,7 +256,7 @@ workflows:
       # - build-docker:
       #     requires: [test]
       # - deploy-infrastructure:
-      #     requires: [test]
+      #     requires: [build-docker]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations:

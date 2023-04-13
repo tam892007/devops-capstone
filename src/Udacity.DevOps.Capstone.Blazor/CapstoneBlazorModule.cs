@@ -144,19 +144,19 @@ public class CapstoneBlazorModule : AbpModule
 
     private void ConfigureVirtualFileSystem(IWebHostEnvironment hostingEnvironment)
     {
-        #if DEBUG
-            if (hostingEnvironment.IsDevelopment())
+#if DEBUG
+        if (hostingEnvironment.IsDevelopment())
+        {
+            Configure<AbpVirtualFileSystemOptions>(options =>
             {
-                Configure<AbpVirtualFileSystemOptions>(options =>
-                {
-                    options.FileSets.ReplaceEmbeddedByPhysical<CapstoneDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Domain.Shared"));
-                    options.FileSets.ReplaceEmbeddedByPhysical<CapstoneDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Domain"));
-                    options.FileSets.ReplaceEmbeddedByPhysical<CapstoneApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Application.Contracts"));
-                    options.FileSets.ReplaceEmbeddedByPhysical<CapstoneApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Application"));
-                    options.FileSets.ReplaceEmbeddedByPhysical<CapstoneBlazorModule>(hostingEnvironment.ContentRootPath);
-                });
-            }
-        #endif
+                options.FileSets.ReplaceEmbeddedByPhysical<CapstoneDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Domain.Shared"));
+                options.FileSets.ReplaceEmbeddedByPhysical<CapstoneDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Domain"));
+                options.FileSets.ReplaceEmbeddedByPhysical<CapstoneApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Application.Contracts"));
+                options.FileSets.ReplaceEmbeddedByPhysical<CapstoneApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}Udacity.DevOps.Capstone.Application"));
+                options.FileSets.ReplaceEmbeddedByPhysical<CapstoneBlazorModule>(hostingEnvironment.ContentRootPath);
+            });
+        }
+#endif
     }
 
     private void ConfigureSwaggerServices(IServiceCollection services)

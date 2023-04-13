@@ -11,4 +11,4 @@
 
 - name: Create K8S Deployment
   shell: |
-    kubectl apply deployment.yml
+    kubectl apply -f deployment.yml

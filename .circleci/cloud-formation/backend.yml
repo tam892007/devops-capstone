@@ -26,8 +26,7 @@ Resources:
     Properties:
       InstanceType: t2.medium
       SubnetId: subnet-02dea923343ebff52
-      SecurityGroups:
-        - Ref: InstanceSecurityGroup
+      SecurityGroupIds: !GetAtt InstanceSecurityGroup.GroupId
       KeyName: capstone 
       ImageId: ami-0fa1de1d60de6a97e
       Tags:

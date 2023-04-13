@@ -241,7 +241,13 @@ jobs:
 workflows:
   default:
     jobs:
-      - run-migrations
+      - deploy-infrastructure
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - deploy-web:
+          requires: [configure-infrastructure]
+      - promote:
+          requires: [deploy-web]
       # - build
       # - test:
       #     requires: [build]

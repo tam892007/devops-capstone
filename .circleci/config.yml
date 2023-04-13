@@ -223,12 +223,12 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
-            export BACKEND_ORIGIN=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
-            echo "${BACKEND_ORIGIN}"
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PrivateIpAddress' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            echo "${BACKEND_IP}"
             aws cloudformation deploy \
-              --template-file .circleci/cloud-formation/cloudfront.yml \
+              --template-file .circleci/cloud-formation/initial.yml \
               --stack-name InitialStack \
-              --parameter-overrides BackendOrigin="${BACKEND_ORIGIN}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides HostIp="${BACKEND_IP}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity-devops-capstone
       - run: |
           cp $BASH_ENV bash.env

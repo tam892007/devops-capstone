@@ -174,17 +174,17 @@ jobs:
           name: Run migrations
           command: |
             export PATH="$PATH:/root/.dotnet/tools"
-            
+
             # List all migrations
             dotnet ef migrations list \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
-              --connection-string ${CONNECTIONSTRINGS__DEFAULT}
+              --connection "${CONNECTIONSTRINGS__DEFAULT}"
 
             # Run and save the migration output
             dotnet ef database update \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
               --no-build \
-              --connection-string ${CONNECTIONSTRINGS__DEFAULT}
+              --connection "${CONNECTIONSTRINGS__DEFAULT}"
 
   deploy-web:
       docker:

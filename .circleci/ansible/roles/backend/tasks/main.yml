@@ -12,3 +12,7 @@
 - name: Create K8S Deployment
   shell: |
     kubectl apply -f deployment.yml
+
+- name: Port forward
+  shell: |
+    kubectl port-forward deployment/udacity-devops-capstone-deployment 80:80 &

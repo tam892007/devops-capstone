@@ -1,0 +1,30 @@
+Description: >
+  Cloudfront distribution for Capstone.
+
+Parameters:
+  BackendOrigin:
+    Description: Orgin of EC2 hosting Minikube
+    Type: String
+  
+  WorkflowID:
+    Description: CircleCI workflow ID.
+    Type: String
+
+Resources:
+  WebpageCDN:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !Sub "${BackendOrigin}"
+            Id: webpage
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: match-viewer
+        Enabled: True
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: False
+          TargetOriginId: webpage
+          ViewerProtocolPolicy: allow-all

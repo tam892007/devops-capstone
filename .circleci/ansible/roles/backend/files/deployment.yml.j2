@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: capstone
+  labels:
+    purpose: Udacity Devops Capstone
+spec:
+  containers:
+  - name: udacity-devops-capstone
+    image: tam892007/udacity-devops-capstone:latest
+    env:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: {{ aspnet_env }}
+    - name: ASPNETCORE_URLS
+      value: {{ aspnet_urls }}
+    - name: App__SelfUrl
+      value: {{ url }}
+    - name: App__RedirectAllowedUrls
+      value: {{ url }}
+    - name: AuthServer__Authority
+      value: {{ url }}
+    - name: ConnectionStrings__Default
+      value: {{ connection_string }}

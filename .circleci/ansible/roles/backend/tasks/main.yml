@@ -1,0 +1,14 @@
+---
+- name: Apply Page Template
+  vars:
+    aspnet_env: "{{ lookup('env', 'ASPNETCORE_ENVIRONMENT')}}"
+    aspnet_urls: "{{ lookup('env', 'ASPNETCORE_URLS')}}"
+    url: "http://{{ lookup('env', 'CLOUDFRONT_ORIGIN')}}"
+    connection_string: "{{ lookup('env', 'CONNECTIONSTRINGS__DEFAULT')}}"
+  template:
+    src: deployment.yml.j2
+    dest: deployment.yml
+
+- name: Create K8S Deployment
+  shell: |
+    kubectl apply deployment.yml

@@ -100,6 +100,7 @@ jobs:
           image: tam892007/udacity-devops-capstone
           path: ./src/Udacity.DevOps.Capstone.Blazor
           tag: latest
+          lint-dockerfile: true
       - docker/push:
           digest-path: /tmp/digest.txt
           image: tam892007/udacity-devops-capstone
@@ -143,8 +144,6 @@ jobs:
           fingerprints: ["53:7a:00:5f:4a:f7:0d:0c:b0:4e:93:b0:53:fa:d9:83"]
       - attach_workspace:
           at: ~/
-      - aws-cli/setup
-      - run: cat ~/project/.circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
@@ -157,14 +156,92 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
 
+  run-migrations:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
+    steps:
+      - checkout
+      - list-packages
+      - restore_cache:
+          keys:
+            - dotnet-packages-v1-{{ checksum "packages.txt" }}
+      - restore-packages
+      - run:
+          name: Run migrations
+          command: |
+            # List all migrations
+            dotnet ef migrations list --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore
+            # Run and save the migration output
+            dotnet ef database update --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore --no-build
+
+  deploy-web:
+      docker:
+        - image: python:3.7-alpine3.11
+      steps:
+        - checkout
+        - add_ssh_keys:
+            fingerprints: ["53:7a:00:5f:4a:f7:0d:0c:b0:4e:93:b0:53:fa:d9:83"]
+        - attach_workspace:
+            at: ~/
+        - run:
+            name: Install dependencies
+            command: |
+              apk add --update ansible
+        - run:
+            name: Deploy backend
+            command: |
+              cd .circleci/ansible
+              echo "Contents  of the inventory.txt file is -------"
+              cat inventory.txt
+              ansible-playbook -i inventory.txt deploy.yml
+
+  promote:
+    docker:
+      - image: cimg/aws:2023.04 
+    steps:
+      - checkout
+      - run:
+          name: Keep OLD stack workflow id
+          command: |
+            # Fetch the Old workflow ID
+            export OldWorkflowID=$(aws cloudformation \
+                      list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                      --no-paginate --output text)
+            echo "export OldWorkflowID=${OldWorkflowID}" >> $BASH_ENV
+            echo OldWorkflowID: "${OldWorkflowID}"
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            export BACKEND_ORIGIN=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            echo "${BACKEND_ORIGIN}"
+            aws cloudformation deploy \
+              --template-file .circleci/cloud-formation/cloudfront.yml \
+              --stack-name InitialStack \
+              --parameter-overrides BackendOrigin="${BACKEND_ORIGIN}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udacity-devops-capstone
+      - run: |
+          cp $BASH_ENV bash.env
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bash.env
+
 workflows:
   default:
     jobs:
-      - build
-      - test:
-          requires: [build]
-      - build-docker:
-          requires: [test]
-      # - deploy-infrastructure
+      - run-migrations
+      # - build
+      # - test:
+      #     requires: [build]
+      # - build-docker:
+      #     requires: [test]
+      # - deploy-infrastructure:
+      #     requires: [test]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-web:
+      #     requires: [run-migrations]
+      # - promote:
+      #     requires: [deploy-web]

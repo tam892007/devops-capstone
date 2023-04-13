@@ -170,10 +170,10 @@ jobs:
           name: Install EF Tool
           command: |
             dotnet tool install --global dotnet-ef
-            export PATH="$PATH:/root/.dotnet/tools"
       - run:
           name: Run migrations
           command: |
+            export PATH="$PATH:/root/.dotnet/tools"
             # List all migrations
             dotnet ef migrations list --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore
             # Run and save the migration output

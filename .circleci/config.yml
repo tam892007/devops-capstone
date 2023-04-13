@@ -241,7 +241,7 @@ workflows:
   default:
     jobs:
       - docker/hadolint:
-          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor
+          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
       - build-docker:
           requires: [docker/hadolint]
       - deploy-infrastructure:
@@ -256,7 +256,7 @@ workflows:
       # - test:
       #     requires: [build]
       # - docker/hadolint:
-      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor
+      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
       # - build-docker:
       #     requires: [docker/hadolint, test]
       # - deploy-infrastructure:

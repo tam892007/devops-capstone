@@ -25,6 +25,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.medium
+      SubnetId: subnet-02dea923343ebff52
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       KeyName: capstone 

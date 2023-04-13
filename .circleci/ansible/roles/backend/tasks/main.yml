@@ -14,5 +14,6 @@
     kubectl apply -f deployment.yml
 
 - name: Port forward
-  shell: |
-    nohup kubectl port-forward deployment/udacity-devops-capstone-deployment --address 0.0.0.0 8080:80 </dev/null >/dev/null 2>&1 &
+  shell: "(kubectl port-forward deployment/udacity-devops-capstone-deployment --address 0.0.0.0 8080:80 >/dev/null 2>&1 &)"
+  async: 10
+  poll: 0

@@ -177,7 +177,10 @@ jobs:
             # List all migrations
             dotnet ef migrations list --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore
             # Run and save the migration output
-            dotnet ef database update --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore --no-build
+            dotnet ef database update \
+              --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore 
+              --no-build \
+              --connection-string ${CONNECTIONSTRINGS__DEFAULT}
 
   deploy-web:
       docker:

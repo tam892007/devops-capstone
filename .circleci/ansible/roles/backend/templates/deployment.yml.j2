@@ -8,26 +8,27 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      app: nginx
+      app: udacity-devops-capstone
   template:
     metadata:
       labels:
         app: udacity-devops-capstone
-    containers:
-    - name: udacity-devops-capstone
-      image: tam892007/udacity-devops-capstone:latest
-      ports:
-      - containerPort: 80
-      env:
-      - name: ASPNETCORE_ENVIRONMENT
-        value: {{ aspnet_env }}
-      - name: ASPNETCORE_URLS
-        value: {{ aspnet_urls }}
-      - name: App__SelfUrl
-        value: {{ url }}
-      - name: App__RedirectAllowedUrls
-        value: {{ url }}
-      - name: AuthServer__Authority
-        value: {{ url }}
-      - name: ConnectionStrings__Default
-        value: {{ connection_string }}
+    spec:
+      containers:
+      - name: udacity-devops-capstone
+        image: tam892007/udacity-devops-capstone:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: {{ aspnet_env }}
+        - name: ASPNETCORE_URLS
+          value: {{ aspnet_urls }}
+        - name: App__SelfUrl
+          value: {{ url }}
+        - name: App__RedirectAllowedUrls
+          value: {{ url }}
+        - name: AuthServer__Authority
+          value: {{ url }}
+        - name: ConnectionStrings__Default
+          value: {{ connection_string }}

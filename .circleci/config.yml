@@ -89,7 +89,7 @@ jobs:
           name: Test
           command: |
             dotnet test --no-restore
-  
+
   build-docker:
     executor: docker/docker
     steps:
@@ -100,7 +100,6 @@ jobs:
           image: tam892007/udacity-devops-capstone
           path: ./src/Udacity.DevOps.Capstone.Blazor
           tag: latest
-          lint-dockerfile: true
       - docker/push:
           digest-path: /tmp/digest.txt
           image: tam892007/udacity-devops-capstone
@@ -241,7 +240,10 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-docker
+      - docker/hadolint:
+          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor
+      - build-docker:
+          requires: [docker/hadolint]
       - deploy-infrastructure:
           requires: [build-docker]
       - configure-infrastructure:
@@ -253,8 +255,10 @@ workflows:
       # - build
       # - test:
       #     requires: [build]
+      # - docker/hadolint:
+      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor
       # - build-docker:
-      #     requires: [test]
+      #     requires: [docker/hadolint, test]
       # - deploy-infrastructure:
       #     requires: [build-docker]
       # - configure-infrastructure:

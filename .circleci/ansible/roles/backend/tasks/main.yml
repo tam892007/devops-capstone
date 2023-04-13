@@ -15,4 +15,4 @@
 
 - name: Port forward
   shell: |
-    kubectl port-forward deployment/udacity-devops-capstone-deployment 80:80 &
+    kubectl port-forward deployment/udacity-devops-capstone-deployment --address 0.0.0.0 8080:80 &

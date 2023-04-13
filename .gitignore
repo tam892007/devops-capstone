@@ -263,7 +263,7 @@ src/Udacity.DevOps.Capstone.Blazor/Logs/*
 src/Udacity.DevOps.Capstone.Blazor.Tiered/Logs/*
 
 # Use abp install-libs to restore.
-**/wwwroot/libs/*
+# **/wwwroot/libs/*
 
 # Custom
 cert/

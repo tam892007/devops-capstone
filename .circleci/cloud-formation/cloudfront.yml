@@ -19,8 +19,8 @@ Resources:
           - DomainName: !Sub "${BackendOrigin}"
             Id: webpage
             CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
+              HTTPPort: 8080
+              HTTPSPort: 8443
               OriginProtocolPolicy: match-viewer
         Enabled: True
         DefaultCacheBehavior:

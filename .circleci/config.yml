@@ -240,27 +240,20 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy-infrastructure
+      - build
+      - test:
+          requires: [build]
+      - docker/hadolint:
+          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      - build-docker:
+          requires: [docker/hadolint, test]
+      - deploy-infrastructure:
+          requires: [build-docker]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - deploy-web:
+      - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-web:
+          requires: [run-migrations]
       - promote:
           requires: [deploy-web]
-      # - build
-      # - test:
-      #     requires: [build]
-      # - docker/hadolint:
-      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      # - build-docker:
-      #     requires: [docker/hadolint, test]
-      # - deploy-infrastructure:
-      #     requires: [build-docker]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-web:
-      #     requires: [run-migrations]
-      # - promote:
-      #     requires: [deploy-web]

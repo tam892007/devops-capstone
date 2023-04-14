@@ -13,5 +13,11 @@
   shell: |
     kubectl apply -f deployment.yml
 
+- name: Installing screen for port-forward
+  become: true
+  yum:
+    name: screen
+    state: present
+
 - name: Port forward
-  shell: nohup kubectl port-forward deployment/udacity-devops-capstone-deployment --address 0.0.0.0 8080:80 </dev/null >/dev/null 2>&1 &
+  shell: screen -S kubectl port-forward deployment/udacity-devops-capstone-deployment --address 0.0.0.0 8080:80

@@ -52,3 +52,9 @@
 
 - name: Starting minikube driver using docker
   command: minikube start --driver=docker
+
+- name: Installing Nginx
+  become: true
+  yum:
+    name: nginx
+    state: present

@@ -25,4 +25,4 @@
     # Add more env vars here
 
   roles:
-    - minikube
+    - configure

@@ -32,3 +32,18 @@ spec:
           value: {{ url }}
         - name: ConnectionStrings__Default
           value: {{ connection_string }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: udacity-devops-capstone-service
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: udacity-devops-capstone-deployment
+  ports:
+    - port: 80
+      targetPort: 80
+      # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+      nodePort: {{ node_port }}

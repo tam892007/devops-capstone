@@ -54,6 +54,7 @@
   command: minikube start --driver=docker
 
 - name: Add Nginx repository
+  become: true
   yum_repository:
     name: nginx
     description: Official Nginx repository

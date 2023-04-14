@@ -23,9 +23,3 @@
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
   notify: Restart Nginx
-
-- name: Restart Nginx
-  become: true
-  systemd:
-    name: nginx
-    state: restarted

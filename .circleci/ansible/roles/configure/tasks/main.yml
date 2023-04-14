@@ -55,4 +55,4 @@
 
 - name: Installing Nginx
   become: true
-  command: amazon-linux-extras install nginx1.12
+  command: amazon-linux-extras install nginx1.12 -y

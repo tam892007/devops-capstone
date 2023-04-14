@@ -58,7 +58,7 @@
   yum_repository:
     name: nginx
     description: Official Nginx repository
-    baseurl: https://nginx.org/packages/centos/$releasever/$basearch/
+    baseurl: https://nginx.org/packages/centos/6/$basearch/
     gpgcheck: yes
     gpgkey: https://nginx.org/keys/nginx_signing.key
     enabled: yes

@@ -53,6 +53,9 @@
 - name: Starting minikube driver using docker
   command: minikube start --driver=docker
 
+- name: Enable Ingress
+  command: minikube addons enable ingress
+
 - name: Installing Nginx
   become: true
   command: amazon-linux-extras install nginx1.12 -y

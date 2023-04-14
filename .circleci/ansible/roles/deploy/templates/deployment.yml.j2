@@ -41,9 +41,32 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app.kubernetes.io/name: udacity-devops-capstone-deployment
+    app: udacity-devops-capstone
   ports:
     - port: 80
       targetPort: 80
       # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
       nodePort: {{ node_port }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: udacity-devops-capstone-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "stickounet"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: udacity-devops-capstone-service
+            port:
+              number: 80

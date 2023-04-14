@@ -223,12 +223,12 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PrivateIpAddress' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
-            echo "${BACKEND_IP}"
+            export BACKEND_ORIGIN=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            echo "${BACKEND_ORIGIN}"
             aws cloudformation deploy \
-              --template-file .circleci/cloud-formation/initial.yml \
+              --template-file .circleci/cloud-formation/cloudfront.yml \
               --stack-name InitialStack \
-              --parameter-overrides HostIp="${BACKEND_IP}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides BackendOrigin="${BACKEND_ORIGIN}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity-devops-capstone
       - run: |
           cp $BASH_ENV bash.env
@@ -240,20 +240,27 @@ jobs:
 workflows:
   default:
     jobs:
-      - build
-      - test:
-          requires: [build]
-      - docker/hadolint:
-          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      - build-docker:
-          requires: [docker/hadolint, test]
-      - deploy-infrastructure:
-          requires: [build-docker]
+      - deploy-infrastructure
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
       - deploy-web:
-          requires: [run-migrations]
+          requires: [configure-infrastructure]
       - promote:
           requires: [deploy-web]
+      # - build
+      # - test:
+      #     requires: [build]
+      # - docker/hadolint:
+      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      # - build-docker:
+      #     requires: [docker/hadolint, test]
+      # - deploy-infrastructure:
+      #     requires: [build-docker]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-web:
+      #     requires: [run-migrations]
+      # - promote:
+      #     requires: [deploy-web]

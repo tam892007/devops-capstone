@@ -172,6 +172,7 @@ jobs:
     steps:
       - checkout
       - run: apt-get install -y tar gzip
+      - aws-cli/setup
       - list-packages
       - restore_cache:
           keys:
@@ -192,10 +193,11 @@ jobs:
 
             # List all migrations
             echo "0" >> migration_list.txt 
-            dotnet ef migrations list \
+            export MIGRATION_LIST=$(dotnet ef migrations list \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
               --connection "${CONNECTIONSTRINGS__DEFAULT}" \
-              --no-build >> migration_list.txt
+              --no-build)
+            echo "${MIGRATION_LIST}" >> migration_list.txt
             
             # Store checkpoint
             export CHECKPOINT=$(grep "(Pending)" migration_list.txt -v | tail -1)

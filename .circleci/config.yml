@@ -171,8 +171,8 @@ jobs:
       - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
-      - run: apt-get update -y && \
-              apt-get upgrade -y
+      - run: apt-get update -y
+      - run: apt-get upgrade -y
       - run: apt-get install -y tar gzip zip unzip
 
   run-migrations:

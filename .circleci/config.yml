@@ -51,6 +51,17 @@ commands:
                 tar -xzf objs.tar.gz
                 echo "Restore skipped."
             fi
+  
+  destroy_environment:
+    parameters:
+      workflow_id:
+        type: string  
+    steps:
+      - run:
+          name: Destroy environment
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name capstone-backend-<<parameters.workflow_id>>
 
 jobs:
   build:
@@ -206,6 +217,32 @@ jobs:
               cat inventory.txt
               ansible-playbook -i inventory.txt deploy.yml
 
+  smoke-test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
+    steps:
+      - checkout
+      - aws-cli/setup
+      - run:
+          name: Get web url
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            echo "export WEB_URL=http://${BACKEND_IP}:8080" >> $BASH_ENV
+            echo "${WEB_URL}"
+      - run:
+          name: Smoke test.
+          command: |
+            echo "${API_URL}/api/status"
+            if curl -I --retry 10 --retry-connrefused --retry-max-time 60 "${API_URL}" | grep "ok"
+            then
+              #Stop here
+              exit 0
+            else
+              exit 1
+            fi
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
   promote:
     docker:
       - image: cimg/aws:2023.04 
@@ -236,6 +273,39 @@ jobs:
           root: .
           paths:
             - bash.env
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - attach_workspace:
+          at: .
+      - run: |
+          cat bash.env >> $BASH_ENV
+      - run:
+          name: Get old stack workflow id
+          command: |
+            # Fetch the Old workflow ID
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            # Fetch the stack names          
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+                      --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}" 
+      - run:
+          name: Remove old stacks and files
+          command: |
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            then
+              echo "DELETE OLD STACK !!!"
+              aws cloudformation delete-stack --stack-name "capstone-backend-${OldWorkflowID}"
+            fi
 
 workflows:
   default:
@@ -245,8 +315,12 @@ workflows:
           requires: [deploy-infrastructure]
       - deploy-web:
           requires: [configure-infrastructure]
-      - promote:
+      - smoke-test:
           requires: [deploy-web]
+      - promote:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [promote]
       # - build
       # - test:
       #     requires: [build]
@@ -262,5 +336,9 @@ workflows:
       #     requires: [configure-infrastructure]
       # - deploy-web:
       #     requires: [run-migrations]
-      # - promote:
+      # - smoke-test:
       #     requires: [deploy-web]
+      # - promote:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [promote]

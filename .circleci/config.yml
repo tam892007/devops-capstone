@@ -173,7 +173,7 @@ jobs:
       - checkout
       - run: apt-get update -y && \
               apt-get upgrade -y
-            apt-get install -y tar gzip zip unzip
+      - run: apt-get install -y tar gzip zip unzip
 
   run-migrations:
     docker:

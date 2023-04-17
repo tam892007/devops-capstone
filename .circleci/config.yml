@@ -51,7 +51,7 @@ commands:
                 tar -xzf objs.tar.gz
                 echo "Restore skipped."
             fi
-  
+
   destroy_environment:
     parameters:
       workflow_id:
@@ -171,6 +171,7 @@ jobs:
       - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
+      - run: apt-get install -y tar gzip
       - list-packages
       - restore_cache:
           keys:
@@ -181,20 +182,46 @@ jobs:
           command: |
             dotnet tool install --global dotnet-ef
       - run:
-          name: Run migrations
+          name: Build
+          command: |
+            dotnet build --no-restore
+      - run:
+          name: Set migration checkpoint
           command: |
             export PATH="$PATH:/root/.dotnet/tools"
 
             # List all migrations
+            echo "0" >> migration_list.txt 
             dotnet ef migrations list \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
-              --connection "${CONNECTIONSTRINGS__DEFAULT}"
-
+              --connection "${CONNECTIONSTRINGS__DEFAULT}" \
+              --no-build >> migration_list.txt
+            
+            # Store checkpoint
+            export CHECKPOINT=$(grep "(Pending)" migration_list.txt -v | tail -1)
+            echo "export CHECKPOINT=${CHECKPOINT}" >> $BASH_ENV
+      - run:
+          name: Run migration and send results to kvdb.io
+          command: |
             # Run and save the migration output
             dotnet ef database update \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
               --no-build \
-              --connection "${CONNECTIONSTRINGS__DEFAULT}"
+              --connection "${CONNECTIONSTRINGS__DEFAULT}" >> migration_run.txt
+
+            if grep -q "Done." migration_run.txt
+            then
+                echo "Save value to kvdb.io"
+                curl --insecure https://kvdb.io/WKCCFAMrtN3WZDXYYmfZDg/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            fi
+      - run: |
+          cp $BASH_ENV bash.env
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bash.env
+      - destroy_environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-web:
       docker:
@@ -205,6 +232,7 @@ jobs:
             fingerprints: ["4f:f7:9b:46:93:d6:90:c7:94:b2:f2:a0:3f:20:41:03"]
         - attach_workspace:
             at: ~/
+        - aws-cli/setup
         - run:
             name: Install dependencies
             command: |
@@ -216,6 +244,8 @@ jobs:
               echo "Contents  of the inventory.txt file is -------"
               cat inventory.txt
               ansible-playbook -i inventory.txt deploy.yml
+        - destroy_environment:
+            workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     docker:
@@ -231,8 +261,8 @@ jobs:
       - run:
           name: Smoke test.
           command: |
-            echo "${API_URL}/api/status"
-            if curl -I --retry 10 --retry-connrefused --retry-max-time 60 "${API_URL}" | grep "ok"
+            echo "${WEB_URL}"
+            if curl -I --retry 10 --retry-connrefused --retry-max-time 60 "${WEB_URL}" | grep "ok"
             then
               #Stop here
               exit 0
@@ -309,35 +339,24 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy-infrastructure
+      - build
+      - test:
+          requires: [build]
+      - docker/hadolint:
+          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      - build-docker:
+          requires: [docker/hadolint, test]
+      - deploy-infrastructure:
+          requires: [build-docker]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - deploy-web:
+      - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-web:
+          requires: [run-migrations]
       - smoke-test:
           requires: [deploy-web]
       - promote:
           requires: [smoke-test]
       - cleanup:
           requires: [promote]
-      # - build
-      # - test:
-      #     requires: [build]
-      # - docker/hadolint:
-      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      # - build-docker:
-      #     requires: [docker/hadolint, test]
-      # - deploy-infrastructure:
-      #     requires: [build-docker]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-web:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-web]
-      # - promote:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [promote]

@@ -219,10 +219,9 @@ jobs:
 
   smoke-test:
     docker:
-      - image: mcr.microsoft.com/dotnet/sdk:7.0
+      - image: cimg/aws:2023.04 
     steps:
       - checkout
-      - aws-cli/setup
       - run:
           name: Get web url
           command: |

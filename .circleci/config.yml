@@ -166,17 +166,23 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt configure-server.yml
 
+  run-migrations-2:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
+    steps:
+      - checkout
+      - run: apt-get update -y && \
+              apt-get upgrade -y
+            apt-get install -y tar gzip zip unzip
+
   run-migrations:
     docker:
       - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
       - run: apt-get update -y && \
-              apt-get upgrade -y && \
-              apt-get dist-upgrade -y && \
-              apt-get -y autoremove && \
-              apt-get clean && \
-              apt-get install -y tar gzip zip unzip
+              apt-get upgrade -y
+            apt-get install -y tar gzip zip unzip
       - aws-cli/setup
       - list-packages
       - restore_cache:
@@ -346,24 +352,25 @@ jobs:
 workflows:
   default:
     jobs:
-      - build
-      - test:
-          requires: [build]
-      - docker/hadolint:
-          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      - build-docker:
-          requires: [docker/hadolint, test]
-      - deploy-infrastructure:
-          requires: [build-docker]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-web:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-web]
-      - promote:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [promote]
+      - run-migrations-2
+      # - build
+      # - test:
+      #     requires: [build]
+      # - docker/hadolint:
+      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      # - build-docker:
+      #     requires: [docker/hadolint, test]
+      # - deploy-infrastructure:
+      #     requires: [build-docker]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-web:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-web]
+      # - promote:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [promote]

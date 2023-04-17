@@ -171,7 +171,7 @@ jobs:
       - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
-      - run: apt-get install -y tar gzip unzip
+      - run: apt-get install -y tar gzip zip
       - aws-cli/setup
       - list-packages
       - restore_cache:

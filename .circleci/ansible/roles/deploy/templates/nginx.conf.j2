@@ -4,7 +4,7 @@ events {
 
 http {
     upstream myapp {
-        server {{ minikube_ip.stdout }}:{{ node_port }};
+        server {{ minikube_ip.stdout }};
     }
 
     map $http_connection $connection_upgrade {

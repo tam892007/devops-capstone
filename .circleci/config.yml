@@ -253,7 +253,7 @@ jobs:
                 curl --insecure https://kvdb.io/WKCCFAMrtN3WZDXYYmfZDg/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - run: |
-          cp $BASH_ENV bash.env
+          cp $BASH_ENV ~/bash.env
       - persist_to_workspace:
           root: ~/
           paths:
@@ -271,7 +271,7 @@ jobs:
         - attach_workspace:
             at: ~/
         - run: |
-            cat bash.env >> $BASH_ENV
+            cat ~/bash.env >> $BASH_ENV
         - install-aws-cli
         - run:
             name: Install EF Tool
@@ -311,7 +311,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run: |
-          cat bash.env >> $BASH_ENV
+          cat ~/bash.env >> $BASH_ENV
       - run:
           name: Get web url
           command: |
@@ -348,7 +348,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run: |
-          cat bash.env >> $BASH_ENV
+          cat ~/bash.env >> $BASH_ENV
       - run:
           name: Keep OLD stack workflow id
           command: |
@@ -369,7 +369,7 @@ jobs:
               --parameter-overrides BackendOrigin="${BACKEND_ORIGIN}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity-devops-capstone
       - run: |
-          cp $BASH_ENV bash.env
+          cp $BASH_ENV ~/bash.env
       - persist_to_workspace:
           root: ~/
           paths:
@@ -389,7 +389,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run: |
-          cat bash.env >> $BASH_ENV
+          cat ~/bash.env >> $BASH_ENV
       - run:
           name: Get old stack workflow id
           command: |

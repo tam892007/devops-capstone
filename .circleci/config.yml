@@ -274,9 +274,13 @@ jobs:
             cat bash.env >> $BASH_ENV
         - install-aws-cli
         - run:
+            name: Install EF Tool
+            command: |
+              dotnet tool install --global dotnet-ef
+        - run:
             name: Install python
             command: |
-              sudo apt-get install python -y
+              apt-get install python -y
         - run:
             name: Install ansible
             command: |
@@ -304,6 +308,10 @@ jobs:
     steps:
       - checkout
       - install-aws-cli
+      - run:
+          name: Install EF Tool
+          command: |
+            dotnet tool install --global dotnet-ef
       - attach_workspace:
           at: .
       - run: |
@@ -336,6 +344,10 @@ jobs:
       - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
+      - run:
+          name: Install EF Tool
+          command: |
+            dotnet tool install --global dotnet-ef
       - install-aws-cli
       - attach_workspace:
           at: .

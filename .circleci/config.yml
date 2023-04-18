@@ -60,6 +60,29 @@ commands:
                 echo "Restore skipped."
             fi
 
+  revert-migrations:
+    description: Revert data migration
+    parameters:
+      workflow_id:
+        type: string
+      checkpoint:
+        type: string      
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl --insecure  https://kvdb.io/WKCCFAMrtN3WZDXYYmfZDg/migration_<<parameters.workflow_id>>)
+            echo ${SUCCESS}
+            if [[ "${SUCCESS}" == "1" ]]
+            then
+              echo "Revert migration to <<parameters.checkpoint>>"
+              export MIGRATION_RUN=$(dotnet ef database update <<parameters.checkpoint>> \
+              --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
+              --connection "${CONNECTIONSTRINGS__DEFAULT}" \
+              --no-build)
+            fi
+
   destroy_environment:
     parameters:
       workflow_id:
@@ -216,8 +239,8 @@ jobs:
             # Run and save the migration output
             export MIGRATION_RUN=$(dotnet ef database update \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
-              --no-build \
-              --connection "${CONNECTIONSTRINGS__DEFAULT}")
+              --connection "${CONNECTIONSTRINGS__DEFAULT}" \
+              --no-build)
             echo "${MIGRATION_RUN}" >> migration_run.txt
 
             if grep -q "Done." migration_run.txt
@@ -242,7 +265,9 @@ jobs:
         - add_ssh_keys:
             fingerprints: ["4f:f7:9b:46:93:d6:90:c7:94:b2:f2:a0:3f:20:41:03"]
         - attach_workspace:
-            at: ~/
+            at: .
+        - run: |
+            cat bash.env >> $BASH_ENV
         - aws-cli/setup
         - run:
             name: Install dependencies
@@ -257,12 +282,19 @@ jobs:
               ansible-playbook -i inventory.txt deploy.yml
         - destroy_environment:
             workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+        - revert-migrations:
+            workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+            checkpoint: ${CHECKPOINT}
 
   smoke-test:
     docker:
       - image: cimg/aws:2023.04 
     steps:
       - checkout
+      - attach_workspace:
+          at: .
+      - run: |
+          cat bash.env >> $BASH_ENV
       - run:
           name: Get web url
           command: |
@@ -282,12 +314,19 @@ jobs:
             fi
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+            workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+            checkpoint: ${CHECKPOINT}
 
   promote:
     docker:
       - image: cimg/aws:2023.04 
     steps:
       - checkout
+      - attach_workspace:
+          at: .
+      - run: |
+          cat bash.env >> $BASH_ENV
       - run:
           name: Keep OLD stack workflow id
           command: |
@@ -315,6 +354,9 @@ jobs:
             - bash.env
       - destroy_environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+            workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+            checkpoint: ${CHECKPOINT}
 
   cleanup:
     docker:
@@ -350,24 +392,25 @@ jobs:
 workflows:
   default:
     jobs:
-      - build
-      - test:
-          requires: [build]
-      - docker/hadolint:
-          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      - build-docker:
-          requires: [docker/hadolint, test]
-      - deploy-infrastructure:
-          requires: [build-docker]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-web:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-web]
-      - promote:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [promote]
+      - run-migrations
+      # - build
+      # - test:
+      #     requires: [build]
+      # - docker/hadolint:
+      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      # - build-docker:
+      #     requires: [docker/hadolint, test]
+      # - deploy-infrastructure:
+      #     requires: [build-docker]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-web:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-web]
+      # - promote:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [promote]

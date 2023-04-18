@@ -291,7 +291,7 @@ jobs:
               cd .circleci/ansible
               echo "Contents  of the inventory.txt file is -------"
               cat inventory.txt
-              ansible-playbook -i inventory.txt deploy.yml
+              ansible-playbook -i inventory.txt deploy.yml --ssh-common-args='-o StrictHostKeyChecking=no'
         - destroy_environment:
             workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
         - revert-migrations:

@@ -236,6 +236,8 @@ jobs:
       - run:
           name: Run migration and send results to kvdb.io
           command: |
+            export PATH="$PATH:/root/.dotnet/tools"
+            
             # Run and save the migration output
             export MIGRATION_RUN=$(dotnet ef database update \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \

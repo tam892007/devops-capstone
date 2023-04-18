@@ -263,7 +263,7 @@ jobs:
 
   deploy-web:
       docker:
-        - image: python:3.7-alpine3.11
+        - image: mcr.microsoft.com/dotnet/sdk:7.0
       steps:
         - checkout
         - add_ssh_keys:
@@ -272,9 +272,17 @@ jobs:
             at: .
         - run: |
             cat bash.env >> $BASH_ENV
-        - aws-cli/setup
+        - install-aws-cli
         - run:
-            name: Install dependencies
+            name: Install python
+            command: |
+              sudo apt-get install python -y
+        - run:
+            name: Install ansible
+            command: |
+              apt-get install ansible -y
+        - run:
+            name: Install ansible
             command: |
               apk add --update ansible
         - run:
@@ -292,9 +300,10 @@ jobs:
 
   smoke-test:
     docker:
-      - image: cimg/aws:2023.04 
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
+      - install-aws-cli
       - attach_workspace:
           at: .
       - run: |
@@ -302,8 +311,8 @@ jobs:
       - run:
           name: Get web url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
-            echo "export WEB_URL=http://${BACKEND_IP}:8080" >> $BASH_ENV
+            export BACKEND_ORIGIN=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            echo "export WEB_URL=http://${BACKEND_ORIGIN}:8080" >> $BASH_ENV
             cat $BASH_ENV
       - run:
           name: Smoke test.
@@ -324,9 +333,10 @@ jobs:
 
   promote:
     docker:
-      - image: cimg/aws:2023.04 
+      - image: mcr.microsoft.com/dotnet/sdk:7.0
     steps:
       - checkout
+      - install-aws-cli
       - attach_workspace:
           at: .
       - run: |

@@ -72,6 +72,8 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
+            export PATH="$PATH:/root/.dotnet/tools"
+
             SUCCESS=$(curl --insecure  https://kvdb.io/WKCCFAMrtN3WZDXYYmfZDg/migration_<<parameters.workflow_id>>)
             echo ${SUCCESS}
             if [[ "${SUCCESS}" == "1" ]]
@@ -237,7 +239,7 @@ jobs:
           name: Run migration and send results to kvdb.io
           command: |
             export PATH="$PATH:/root/.dotnet/tools"
-            
+
             # Run and save the migration output
             export MIGRATION_RUN=$(dotnet ef database update \
               --project ./src/Udacity.DevOps.Capstone.EntityFrameworkCore \
@@ -394,25 +396,24 @@ jobs:
 workflows:
   default:
     jobs:
-      - run-migrations
-      # - build
-      # - test:
-      #     requires: [build]
-      # - docker/hadolint:
-      #     dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
-      # - build-docker:
-      #     requires: [docker/hadolint, test]
-      # - deploy-infrastructure:
-      #     requires: [build-docker]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-web:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-web]
-      # - promote:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [promote]
+      - build
+      - test:
+          requires: [build]
+      - docker/hadolint:
+          dockerfiles: ./src/Udacity.DevOps.Capstone.Blazor/Dockerfile
+      - build-docker:
+          requires: [docker/hadolint, test]
+      - deploy-infrastructure:
+          requires: [build-docker]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-web:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-web]
+      - promote:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [promote]
